@@ -19,7 +19,10 @@ from .resmasking import (
     resmasking_dropout2,
     resmasking50_dropout1,
 )
-from .lightcnn import lightcnn
+from .lightcnn import (
+    lightcnn,
+    lightcnn_dropout1,
+)
 from .resmasking_naive import resmasking_naive_dropout1
 from .brain_humor import *
 from .runet import *
