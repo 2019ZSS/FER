@@ -86,5 +86,10 @@ def get_dataset(configs):
 
 
 if __name__ == "__main__":
-    # main("./configs/fer2013_config.json")
-    main('./configs/fer2013_config.json')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_path", type=str, default="./configs/fer2013_config.json", help='model config path')
+    opt = parser.parse_args()
+    config_path = opt.config_path
+    config_path = config_path.strip('\'').strip('\"')
+    main(config_path)
