@@ -141,3 +141,4 @@ version.py
 /.vscode/
 /data
 /log 
+.test.py

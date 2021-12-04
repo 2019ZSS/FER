@@ -116,6 +116,7 @@ def lightcnn(in_channels, num_classes=7, weight_path=""):
     model = LightCNN(low_head=low_head, filters=filters, num_classes=num_classes)
     return model
 
+
 def lightcnn_dropout1(in_channels, num_classes=7, weight_path=""):
     filters = [64, 128, 256, 518, 1024]
     low_head = LowHead(in_channels, filters[0])
