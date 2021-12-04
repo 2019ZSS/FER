@@ -86,4 +86,5 @@ def get_dataset(configs):
 
 
 if __name__ == "__main__":
-    main("./configs/fer2013_config.json")
+    # main("./configs/fer2013_config.json")
+    main('./configs/fer2013_config.json')

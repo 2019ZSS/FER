@@ -1,9 +1,9 @@
 {
 	"data_path": "data/fer2013",
-	"image_size": 224,
-	"in_channels": 3,
+	"image_size": 48,
+	"in_channels": 1,
 	"num_classes": 7,
-	"arch": "resnet18",
+	"arch": "lightcnn",
 	"lr":  0.0001,
 	"weighted_loss": 0,
 	"momentum": 0.9,
@@ -18,5 +18,5 @@
 	"steplr": 50,
 	"log_dir": "log",
 	"checkpoint_dir": "checkpoint",
-	"model_name": "test"
+	"model_name": "lightcnn"
 }
