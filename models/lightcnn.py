@@ -62,7 +62,7 @@ class BasicBlock(nn.Module):
         y = self.conv4(x)
         x = self.pool(self.conv3(self.conv2(self.conv1(x))))
         x = x + y 
-        return x 
+        return F.relu(x) 
 
 
 class LowHead(nn.Module):
