@@ -141,5 +141,5 @@ version.py
 /.vscode/
 /data
 /log 
-.test.py
+test.py
 /checkpoint

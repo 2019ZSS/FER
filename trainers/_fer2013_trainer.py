@@ -55,17 +55,26 @@ class FER2013Trainer(Trainer):
         self._device = torch.device(self._configs["device"])
         self._max_epoch_num = self._configs["max_epoch_num"]
         self._max_plateau_count = self._configs["max_plateau_count"]
-
+        self._min_lr = self._configs["min_lr"] if "min_lr" in self._configs else 1e-6
         # load dataloader and model
         self._train_set = train_set
         self._val_set = val_set
         self._test_set = test_set
-        self._model = model(
-            in_channels=configs["in_channels"],
-            num_classes=configs["num_classes"],
-        )
-
-        self._model.fc = nn.Linear(512, 7)
+        if self._configs["arch"] in [""]:
+            kw = configs["model_kw"] if 'model_kw' in configs else {}
+            self._model = model(
+                in_channels=configs["in_channels"],
+                num_classes=configs["num_classes"],
+                weight_path=configs["weight_path"] if "weight_path" in configs else "",
+                **kw, 
+            )
+        else:
+            self._model = model(
+                in_channels=configs["in_channels"],
+                num_classes=configs["num_classes"],
+                weight_path=configs["weight_path"] if "weight_path" in configs else "", 
+            )
+        # self._model.fc = nn.Linear(512, 7)
         self._model = self._model.to(self._device)
 
         if self._distributed == 1:
@@ -175,7 +184,7 @@ class FER2013Trainer(Trainer):
         self._current_epoch_num = 0
 
         # for checkpoints
-        self._checkpoint_dir = os.path.join(self._configs["cwd"], "saved/checkpoints")
+        self._checkpoint_dir = os.path.join(self._configs["cwd"], self._configs["checkpoint_dir"])
         if not os.path.exists(self._checkpoint_dir):
             os.makedirs(self._checkpoint_dir, exist_ok=True)
 

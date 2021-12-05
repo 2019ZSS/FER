@@ -59,15 +59,25 @@ class FER2013Trainer(Trainer):
         self._device = torch.device(self._configs["device"])
         self._max_epoch_num = self._configs["max_epoch_num"]
         self._max_plateau_count = self._configs["max_plateau_count"]
-
+        self._min_lr = self._configs["min_lr"] if "min_lr" in self._configs else 1e-6
         # load dataloader and model
         self._train_set = train_set
         self._val_set = val_set
         self._test_set = test_set
-        self._model = model(
-            in_channels=configs["in_channels"],
-            num_classes=configs["num_classes"],
-        )
+        if self._configs["arch"] in [""]:
+            kw = configs["model_kw"] if 'model_kw' in configs else {}
+            self._model = model(
+                in_channels=configs["in_channels"],
+                num_classes=configs["num_classes"],
+                weight_path=configs["weight_path"] if "weight_path" in configs else "",
+                **kw, 
+            )
+        else:
+            self._model = model(
+                in_channels=configs["in_channels"],
+                num_classes=configs["num_classes"],
+                weight_path=configs["weight_path"] if "weight_path" in configs else "", 
+            )
 
         # self._model.fc = nn.Linear(512, 7)
         # self._model.fc = nn.Linear(256, 7)
@@ -151,7 +161,7 @@ class FER2013Trainer(Trainer):
         self._scheduler = ReduceLROnPlateau(
             self._optimizer,
             patience=self._configs["plateau_patience"],
-            min_lr=1e-6,
+            min_lr=self._min_lr,
             verbose=True,
         )
 
@@ -202,7 +212,7 @@ class FER2013Trainer(Trainer):
 
         self._checkpoint_path = os.path.join(
             self._checkpoint_dir,
-            "{}_{}_{}".format(
+            "{}_{}_{}.pth".format(
                 self._configs["arch"],
                 self._configs["model_name"],
                 self._start_time.strftime("%Y%b%d_%H.%M"),

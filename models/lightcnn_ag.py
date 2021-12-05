@@ -48,9 +48,17 @@ class LightCNNAG(LightCNN):
         return x 
 
 
-def lightcnn_ag(in_channels, num_classes=7, weight_path=""):
-    filters = [64, 128, 256, 518, 1024]
+def make_lightcnn_ag(in_channels, num_classes=7, weight_path="", 
+                    filters=[64, 128, 256, 518, 1024], ag_layer=[0, 0, 1, 1, 1]):
+    filters = filters
     low_head = LowHead(in_channels, filters[0])
-    ag_layer = [1, 1, 1, 1, 1]
+    ag_layer = ag_layer
     model = LightCNNAG(low_head=low_head, filters=filters, num_classes=num_classes, ag_layer=ag_layer)
     return model
+
+
+def lightcnn_ag(in_channels, num_classes=7, weight_path="", **kw):
+    filters = kw['filters'] if 'filters' in kw else [64, 128, 256, 518, 1024]
+    ag_layer = kw['ag_layer'] if 'ag_layer' in kw else [1, 1, 1, 1, 1] 
+    return make_lightcnn_ag(in_channels=in_channels, num_classes=num_classes, weight_path=weight_path,
+                            filters=filters, ag_layer=ag_layer)
