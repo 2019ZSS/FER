@@ -383,7 +383,7 @@ class FER2013Trainer(Trainer):
                 self._test_acc = self._calc_acc_on_private_test_with_tta()
 
             # self._test_acc = self._calc_acc_on_private_test()
-            self._save_weights(pth_name='final')
+            self._save_weights(pth_name='best')
         except Exception as e:
             traceback.print_exc()
             pass
