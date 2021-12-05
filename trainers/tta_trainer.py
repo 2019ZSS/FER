@@ -273,9 +273,6 @@ class FER2013Trainer(Trainer):
             i += 1
             self._val_loss_list.append(val_loss / i)
             self._val_acc_list.append(val_acc / i)
-            
-        if len(self._val_acc_list) > 1 and self._val_acc_list[-1] > self._val_acc_list[-2]:
-            self._save_weights(pth_name='best')
 
     def _calc_acc_on_private_test(self):
         self._model.eval()
@@ -411,7 +408,7 @@ class FER2013Trainer(Trainer):
 
     def _update_training_state(self):
         if self._val_acc_list[-1] > self._best_val_acc:
-            self._save_weights()
+            self._save_weights(pth_name='best')
             self._plateau_count = 0
             self._best_val_acc = self._val_acc_list[-1]
             self._best_val_loss = self._val_loss_list[-1]
