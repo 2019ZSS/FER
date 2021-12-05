@@ -64,7 +64,7 @@ class FER2013Trainer(Trainer):
         self._train_set = train_set
         self._val_set = val_set
         self._test_set = test_set
-        if self._configs["arch"] in [""]:
+        if self._configs["arch"] in ["lightcnn_ag"]:
             kw = configs["model_kw"] if 'model_kw' in configs else {}
             self._model = model(
                 in_channels=configs["in_channels"],
@@ -212,7 +212,7 @@ class FER2013Trainer(Trainer):
 
         self._checkpoint_path = os.path.join(
             self._checkpoint_dir,
-            "{}_{}_{}.pth".format(
+            "{}_{}_{}".format(
                 self._configs["arch"],
                 self._configs["model_name"],
                 self._start_time.strftime("%Y%b%d_%H.%M"),
@@ -273,6 +273,8 @@ class FER2013Trainer(Trainer):
             i += 1
             self._val_loss_list.append(val_loss / i)
             self._val_acc_list.append(val_acc / i)
+        if len(self._val_acc_list) > 1 and self._val_acc_list[-1] > self._val_acc_list[-2]:
+            self._save_weights(pth_name='best')
 
     def _calc_acc_on_private_test(self):
         self._model.eval()
@@ -371,8 +373,7 @@ class FER2013Trainer(Trainer):
 
         # training stop
         try:
-            # state = torch.load('saved/checkpoints/resatt18_rot30_2019Nov06_18.56')
-            state = torch.load(self._checkpoint_path)
+            state = torch.load(self._checkpoint_path + '_{}.pth'.format('best'))
             if self._distributed:
                 self._model.module.load_state_dict(state["net"])
             else:
@@ -384,7 +385,7 @@ class FER2013Trainer(Trainer):
                 self._test_acc = self._calc_acc_on_private_test_with_tta()
 
             # self._test_acc = self._calc_acc_on_private_test()
-            self._save_weights()
+            self._save_weights(pth_name='final')
         except Exception as e:
             traceback.print_exc()
             pass
@@ -462,7 +463,7 @@ class FER2013Trainer(Trainer):
     def _increase_epoch_num(self):
         self._current_epoch_num += 1
 
-    def _save_weights(self, test_acc=0.0):
+    def _save_weights(self, test_acc=0.0, pth_name='final'):
         if self._distributed == 0:
             state_dict = self._model.state_dict()
         else:
@@ -482,4 +483,4 @@ class FER2013Trainer(Trainer):
             "test_acc": self._test_acc,
         }
 
-        torch.save(state, self._checkpoint_path)
+        torch.save(state, self._checkpoint_path + '_{}.pth'.format(pth_name))
