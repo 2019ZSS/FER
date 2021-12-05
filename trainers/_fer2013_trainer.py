@@ -177,11 +177,11 @@ class FER2013Trainer(Trainer):
         # for checkpoints
         self._checkpoint_dir = os.path.join(self._configs["cwd"], "saved/checkpoints")
         if not os.path.exists(self._checkpoint_dir):
-            os.makedirs(checkpoint_dir, exist_ok=True)
+            os.makedirs(self._checkpoint_dir, exist_ok=True)
 
         self._checkpoint_path = os.path.join(
             self._checkpoint_dir,
-            "{}_{}".format(
+            "{}_{}.pth".format(
                 self._configs["model_name"], self._start_time.strftime("%Y%b%d_%H.%M")
             ),
         )
