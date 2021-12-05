@@ -273,6 +273,7 @@ class FER2013Trainer(Trainer):
             i += 1
             self._val_loss_list.append(val_loss / i)
             self._val_acc_list.append(val_acc / i)
+            
         if len(self._val_acc_list) > 1 and self._val_acc_list[-1] > self._val_acc_list[-2]:
             self._save_weights(pth_name='best')
 
