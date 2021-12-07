@@ -26,6 +26,9 @@ from .lightcnn import (
 from .lightcnn_ag import(
     lightcnn_ag,
 )
+from .lightcnn_at import(
+    lightcnn_at
+)
 from .resmasking_naive import resmasking_naive_dropout1
 from .brain_humor import *
 from .runet import *
