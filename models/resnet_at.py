@@ -38,17 +38,23 @@ def getATModule(at_type):
 
 class ResNetAT(ResNet):
 
-    def __init__(self, at_type, at_kws, at_layer=[0, 0, 0, 0, 1], resnet_type='resnet18', pretrained=False, in_channels=3, num_classes=1000, drop=0.0):
+    def __init__(self, at_type, at_kws, bc_kw=None, at_layer=[0, 0, 0, 0, 1], resnet_type='resnet18', pretrained=False, in_channels=3, num_classes=1000, drop=0.0):
+        if pretrained:
+            assert in_channels == 3
         assert resnet_type in ('resnet18', 'resnet34', 'resnet50')
         block, layers, features = getLayerSetting(resnet_type)
         super(ResNetAT, self).__init__(
-            block=block, layers=layers, in_channels=3, num_classes=1000
+            block=block, layers=layers, in_channels=in_channels, num_classes=1000 if pretrained else num_classes
         )
         if pretrained:
             state_dict = load_state_dict_from_url(model_urls[resnet_type], progress=True)
             self.load_state_dict(state_dict)
         self.drop = nn.Dropout(drop) if drop > 0 else nn.Identity()
-        self.fc = nn.Linear(in_features=features[-1], out_features=num_classes)
+        self._bc_kw = bc_kw
+        if bc_kw:
+            self.fc = BilinearCNN(**bc_kw)
+        else:
+            self.fc = nn.Linear(in_features=features[-1], out_features=num_classes)
         self.at_layer = at_layer
         at_model = getATModule(at_type=at_type)
         if self.at_layer[0]:
@@ -94,15 +100,16 @@ class ResNetAT(ResNet):
         if self.at_layer[4]:
             x = self.at4(x)
 
-        x = self.avgpool(x)
-        x = torch.flatten(x, 1)
-
-        x = self.fc(x)
+        if self._bc_kw:
+            x = self.fc(x)
+        else:
+            x = self.avgpool(x)
+            x = torch.flatten(x, 1)
+            x = self.fc(self.drop(x))
         return x
 
 
 def resnet_at(in_channels, num_classes=7, weight_path="", **kw):
-    assert in_channels == 3
     filters = kw['filters'] if 'filters' in kw else [64, 64, 128, 256, 512]
     at_type = kw['at_type'] if 'at_type' in kw else 'CB'
     at_kws = kw['at_kws'] if 'at_kws' in kw else [
@@ -114,11 +121,9 @@ def resnet_at(in_channels, num_classes=7, weight_path="", **kw):
     resnet_type = kw['resnet_type'] if 'resnet_type' in kw else 'resnet18'
     pretrained = kw['pretrained'] if 'pretrained' in kw else False
     drop = kw['drop'] if 'drop' in kw else 0.0
-    bc_kw = kw['bc_kw'] if 'BT' in kw else None
-    model = ResNetAT(at_type=at_type, at_kws=at_kws, at_layer=at_layer, 
+    bc_kw = kw['bc_kw'] if 'bc_kw' in kw else None
+    model = ResNetAT(at_type=at_type, at_kws=at_kws, bc_kw=bc_kw, at_layer=at_layer, 
                     resnet_type=resnet_type, pretrained=pretrained,
                     in_channels=in_channels, num_classes=num_classes, drop=drop)
-    if bc_kw:
-        model.fc = BilinearCNN(**bc_kw)
     return model
     
