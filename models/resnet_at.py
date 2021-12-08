@@ -8,6 +8,7 @@ from .resnet import BasicBlock, Bottleneck, ResNet, resnet18
 from .at import (
     ContextBlock,
     StripPooling,
+    BilinearCNN,
 )
 
 model_urls = {
@@ -43,8 +44,9 @@ class ResNetAT(ResNet):
         super(ResNetAT, self).__init__(
             block=block, layers=layers, in_channels=3, num_classes=1000
         )
-        state_dict = load_state_dict_from_url(model_urls[resnet_type], progress=True)
-        self.load_state_dict(state_dict)
+        if pretrained:
+            state_dict = load_state_dict_from_url(model_urls[resnet_type], progress=True)
+            self.load_state_dict(state_dict)
         self.drop = nn.Dropout(drop) if drop > 0 else nn.Identity()
         self.fc = nn.Linear(in_features=features[-1], out_features=num_classes)
         self.at_layer = at_layer
@@ -112,7 +114,11 @@ def resnet_at(in_channels, num_classes=7, weight_path="", **kw):
     resnet_type = kw['resnet_type'] if 'resnet_type' in kw else 'resnet18'
     pretrained = kw['pretrained'] if 'pretrained' in kw else False
     drop = kw['drop'] if 'drop' in kw else 0.0
-    return ResNetAT(at_type=at_type, at_kws=at_kws, at_layer=at_layer, 
+    bc_kw = kw['bc_kw'] if 'BT' in kw else None
+    model = ResNetAT(at_type=at_type, at_kws=at_kws, at_layer=at_layer, 
                     resnet_type=resnet_type, pretrained=pretrained,
                     in_channels=in_channels, num_classes=num_classes, drop=drop)
+    if bc_kw:
+        model.fc = BilinearCNN(**bc_kw)
+    return model
     

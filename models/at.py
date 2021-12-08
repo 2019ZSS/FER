@@ -42,7 +42,7 @@ class ContextBlock(nn.Module):
     Global Context Network（GCNet）
     Paper:  Global Context Network（GCNet）
     Code: https://github.com/xvjiarui/GCNet
-    Analysis: https://blog.csdn.net/baidu_36913330/article/details/120849300
+    Analysis: https://blog.csdn.net/sinat_17456165/article/details/106760606
     '''
     def __init__(self, inplanes, ratio=1.0/16, pooling_type='att', fusion_types=('channel_add', )):
         super(ContextBlock, self).__init__()
@@ -213,6 +213,38 @@ class StripPooling(nn.Module):
         return F.relu_(x + out)
 
 
+class BilinearCNN(nn.Module):
+
+    def __init__(self, in_channels=512, inter_channels=512, num_classes=7, drop=0., eps=1e-10):
+        super(BilinearCNN, self).__init__()
+        self._in_channels = in_channels
+        self._inter_channels = inter_channels
+        self._eps = eps
+        if self._in_channels != self._inter_channels:
+            self.conv = nn.Sequential(nn.Conv2d(in_channels=self._in_channels, out_channels=self._inter_channels, kernel_size=1), 
+                                        nn.BatchNorm2d(in_channels),
+                                        nn.ReLU(True))
+        self.fc = nn.Linear(in_features=inter_channels**2, out_features=num_classes) 
+        self.drop = nn.Dropout(drop) if drop > 0 else nn.Identity()
+        
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0) 
+
+    def forward(self, x):
+        batch_size, in_channels, h, w = x.size()
+        feature_size = h * w 
+        if self._in_channels != self._inter_channels:
+            x = self.conv(x)
+        x = x.view(batch_size, self._inter_channels, feature_size)
+        x = (torch.bmm(x, torch.transpose(x, 1, 2)) / feature_size).view(batch_size, -1)
+        x = torch.nn.functional.normalize(torch.sign(x) * torch.sqrt(torch.abs(x) + self._eps))
+        return self.fc(self.drop(x))
+
+
 if __name__=='__main__':
     model = NonLocalBlock(in_channels=16)
     print(model)
@@ -235,6 +267,13 @@ if __name__=='__main__':
         'align_corners': False
     }
     x = torch.rand(size=(4, in_channels, 16, 16))
-    sp = StripPooling(in_channels, pool_size, norm_layer, up_kwargs)
+    sp = StripPooling(in_channels, pool_size, up_kwargs, norm_layer)
     y = sp(x)
+    print(x.shape, y.shape)
+
+    in_channels = 512
+    inter_channels = 512
+    x = torch.randn(size=(4, in_channels, 16, 16))
+    model = BilinearCNN(in_channels=in_channels, inter_channels=inter_channels, drop=0.5)
+    y = model(x)
     print(x.shape, y.shape)
