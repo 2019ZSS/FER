@@ -64,7 +64,7 @@ class FER2013Trainer(Trainer):
         self._train_set = train_set
         self._val_set = val_set
         self._test_set = test_set
-        if self._configs["arch"] in ["lightcnn_ag", "lightcnn_at"]:
+        if self._configs["arch"] in ["lightcnn_ag", "lightcnn_at", "resnet_at"]:
             kw = configs["model_kw"] if 'model_kw' in configs else {}
             self._model = model(
                 in_channels=configs["in_channels"],
