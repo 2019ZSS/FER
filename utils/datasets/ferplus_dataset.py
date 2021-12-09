@@ -53,6 +53,9 @@ class FERPlus(Dataset):
         self.loaded_data = self._load()
         print('Size of the loaded set: {}'.format(self.loaded_data[0].shape[0]))
 
+    def is_tta(self):
+        return self._tta == True
+
     def __len__(self):
         return self.loaded_data[0].shape[0]
 
