@@ -81,7 +81,9 @@ def get_dataset(configs):
     # todo: add transform
     train_set = fer2013("train", configs)
     val_set = fer2013("val", configs)
-    test_set = fer2013("test", configs, tta=True, tta_size=10)
+    tta = configs['tta'] if 'tta' in configs else False
+    tta_size = configs['tta_size'] if 'tta_size' in configs else 10
+    test_set = fer2013("test", configs, tta=tta, tta_size=tta_size)
     return train_set, val_set, test_set
 
 
