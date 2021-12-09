@@ -31,10 +31,10 @@ class DownsampleLayer(nn.Module):
     def __init__(self,in_ch, out_ch):
         super(DownsampleLayer, self).__init__()
         self.Conv_BN_ReLU_2 = nn.Sequential(
-            nn.Conv2d(in_channels=in_ch,out_channels=out_ch,kernel_size=3,stride=1,padding=1),
+            nn.Conv2d(in_channels=in_ch, out_channels=out_ch, kernel_size=3,stride=1, padding=1),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=out_ch, out_channels=out_ch, kernel_size=3, stride=1,padding=1),
+            nn.Conv2d(in_channels=out_ch, out_channels=out_ch, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True)
         )
@@ -52,16 +52,15 @@ class DownsampleLayer(nn.Module):
 
 class AttentionGate(nn.Module):
 
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, ratio=0.5):
         super(AttentionGate, self).__init__()
         self.down = DownsampleLayer(in_channels, in_channels * 2)
-        self.attention = AttentionBlock(in_channels, in_channels * 2, in_channels)
+        self.attention = AttentionBlock(in_channels, in_channels * 2, int(in_channels * ratio))
         self.bn = nn.BatchNorm2d(in_channels)
     
     def forward(self, x):
         g = self.down(x)
-        x = self.attention(x, g)
-        return self.bn(x)
+        return F.relu(x + self.bn(self.attention(x, g)), inplace=True)
 
 
 if __name__ == "__main__":

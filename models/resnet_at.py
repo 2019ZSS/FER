@@ -11,6 +11,10 @@ from .at import (
     BilinearCNN,
 )
 
+from .attention_gate import(
+    AttentionGate
+)
+
 model_urls = {
     "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
     "resnet34": "https://download.pytorch.org/models/resnet34-333f7ec4.pth",
@@ -33,6 +37,8 @@ def getATModule(at_type):
         return ContextBlock
     if at_type == 'SP':
         return StripPooling 
+    if at_type == 'AG':
+        return AttentionGate
     raise NotImplementedError('{} not implemented'.format(at_type))
 
 
