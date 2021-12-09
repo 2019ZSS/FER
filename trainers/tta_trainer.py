@@ -286,9 +286,7 @@ class FER2013Trainer(Trainer):
 
                 images = images.cuda(non_blocking=True)
                 targets = targets.cuda(non_blocking=True)
-
                 outputs = self._model(images)
-                print(outputs.shape, outputs)
                 acc = accuracy(outputs, targets)[0]
                 test_acc += acc.item()
                 f.writelines("{}_{}\n".format(i, acc.item()))
