@@ -9,6 +9,7 @@ from .at import (
     ContextBlock,
     StripPooling,
     BilinearCNN,
+    PSAModule,
 )
 
 from .attention_gate import(
@@ -39,12 +40,20 @@ def getATModule(at_type):
         return StripPooling 
     if at_type == 'AG':
         return AttentionGate
+    if at_type == 'PSA':
+        return PSAModule
     raise NotImplementedError('{} not implemented'.format(at_type))
+
+
+def getLowHeadModule(low_head_type):
+    if low_head_type == 'PSA':
+        return PSAModule
+    raise NotImplementedError('{} not implemented'.format(low_head_type))
 
 
 class ResNetAT(ResNet):
 
-    def __init__(self, at_type, at_kws, bc_kw=None, at_layer=[0, 0, 0, 0, 1], resnet_type='resnet18', pretrained=False, in_channels=3, num_classes=1000, drop=0.0):
+    def __init__(self, at_type, at_kws, low_head_type=None, low_head_kw=None, bc_kw=None, at_layer=[0, 0, 0, 0, 1], resnet_type='resnet18', pretrained=False, in_channels=3, num_classes=1000, drop=0.0):
         if pretrained:
             assert in_channels == 3
         assert resnet_type in ('resnet18', 'resnet34', 'resnet50')
@@ -55,6 +64,11 @@ class ResNetAT(ResNet):
         if pretrained:
             state_dict = load_state_dict_from_url(model_urls[resnet_type], progress=True)
             self.load_state_dict(state_dict)
+        if low_head_type is not None:
+            self.low_head_type = low_head_type
+            self.low_head_module = getLowHeadModule(low_head_type)(**low_head_kw)
+        else:
+            self.low_head_type = None
         self.drop = nn.Dropout(drop) if drop > 0 else nn.Identity()
         self._bc_kw = bc_kw
         if bc_kw:
@@ -85,7 +99,10 @@ class ResNetAT(ResNet):
         x = self.conv1(x)  # 112
         x = self.bn1(x)
         x = self.relu(x)
-        x = self.maxpool(x)  # 56
+        if self.low_head_type:
+            x = self.low_head_module(x)
+        else:
+            x = self.maxpool(x)  # 56
 
         if self.at_layer[0]:
             x = self.at0(x)
@@ -128,7 +145,10 @@ def resnet_at(in_channels, num_classes=7, weight_path="", **kw):
     pretrained = kw['pretrained'] if 'pretrained' in kw else False
     drop = kw['drop'] if 'drop' in kw else 0.0
     bc_kw = kw['bc_kw'] if 'bc_kw' in kw else None
-    model = ResNetAT(at_type=at_type, at_kws=at_kws, bc_kw=bc_kw, at_layer=at_layer, 
+    low_head_type = kw['low_head_type'] if 'low_head_type' in kw else None
+    low_head_kw = kw['low_head_kw'] if 'low_head_kw' in kw else None
+    model = ResNetAT(at_type=at_type, at_kws=at_kws, low_head_type=low_head_type, 
+                    low_head_kw=low_head_kw, bc_kw=bc_kw, at_layer=at_layer, 
                     resnet_type=resnet_type, pretrained=pretrained,
                     in_channels=in_channels, num_classes=num_classes, drop=drop)
     return model
