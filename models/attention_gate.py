@@ -63,9 +63,32 @@ class AttentionGate(nn.Module):
         return F.relu(x + self.bn(self.attention(x, g)), inplace=True)
 
 
+class AttentionGate2(nn.Module):
+
+    def __init__(self, in_channels, ratio=0.5):
+        super(AttentionGate2, self).__init__()
+        self.down1 = DownsampleLayer(in_channels, in_channels * 2)
+        self.down2 = DownsampleLayer(in_channels * 2, in_channels * 4)
+        self.attention1 = AttentionBlock(in_channels, in_channels * 2, int(in_channels * ratio))
+        self.attention2 = AttentionBlock(in_channels * 2, in_channels * 4, int(in_channels * 2 * ratio))
+        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.bn2 = nn.BatchNorm2d(in_channels * 2)
+
+    def forward(self, x):
+        x1 = self.down1(x)
+        x2 = self.down2(x1)
+        g1 = F.relu(x1 + self.bn2(self.attention2(x1, x2)), inplace=True)
+        g2 = F.relu(x + self.bn1(self.attention1(x, g1)), inplace=True)
+        return g2
+
+
 if __name__ == "__main__":
     print('test')
     x = torch.rand(size=(4, 64, 48, 48))
     model = AttentionGate(in_channels=64)
     y = model(x)
+    print(x.shape, y.shape)
+    model = AttentionGate2(in_channels=64)
+    y = model(x)
+    print(model)
     print(x.shape, y.shape)

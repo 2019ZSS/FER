@@ -13,7 +13,8 @@ from .at import (
 )
 
 from .attention_gate import(
-    AttentionGate
+    AttentionGate,
+    AttentionGate2
 )
 
 model_urls = {
@@ -40,6 +41,8 @@ def getATModule(at_type):
         return StripPooling 
     if at_type == 'AG':
         return AttentionGate
+    if at_type == 'AG2':
+        return AttentionGate2
     if at_type == 'PSA':
         return PSAModule
     raise NotImplementedError('{} not implemented'.format(at_type))
