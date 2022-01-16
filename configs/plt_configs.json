@@ -1,0 +1,33 @@
+{
+	"data_path": "data/fer2013",
+    "model_path": "./checkpoint/resnet_at_18_224/resnet_at_resnet_at_2021Dec28_08.14_best.pth",
+	"image_size": 224,
+	"in_channels": 3,
+	"num_classes": 7,
+	"arch": "resnet_at",
+	"lr":  0.001,
+    "min_lr": 0.00000001,
+	"weighted_loss": 0,
+	"momentum": 0.9,
+	"weight_decay": 0.001,
+	"distributed": 0,
+	"batch_size": 48, 
+	"num_workers": 8,
+	"device": "cuda:0",
+	"max_epoch_num": 100,
+	"max_plateau_count": 8,
+	"plateau_patience": 2,
+	"steplr": 50,
+	"log_dir": "log",
+	"checkpoint_dir": "checkpoint",
+	"model_name": "resnet_at",
+    "model_kw": {
+        "resnet_type": "resnet18", 
+        "pretrained": false, 
+        "drop": 0.5, 
+        "filters": [64, 64, 128, 256, 512], 
+        "at_type": "AG", 
+        "at_layer": [0, 0, 0, 0, 0], 
+        "at_kws": [{"in_channels": 64, "ratio": 1.0}, {"in_channels": 64, "ratio": 1.0}, {"in_channels": 128, "ratio": 1.0}, {"in_channels": 256, "ratio": 1.0}, {"in_channels": 512, "ratio": 1.0}]
+	}
+}
