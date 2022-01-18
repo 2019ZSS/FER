@@ -189,7 +189,16 @@ def main(config_path):
     model = trainer._model
     checkpoint = torch.load(configs['model_path'])
     model.load_state_dict(checkpoint['net'])
-    
+    from thop import profile
+    input =  torch.randn(1, 3, 224, 224)
+    flops, params = profile(model, inputs=(input.cuda(), ))
+    print('flops:{}'.format(flops))
+    print('params:{}'.format(params))
+    from thop import clever_format
+    # Params(M), FLOPs(G)
+    flops, params = clever_format([flops, params], "%.3f")
+    print(flops, params)
+    exit(0)
     EMO_DICT = {
         0: "angry",
         1: "disgust",
@@ -211,9 +220,9 @@ def main(config_path):
             targets = targets.cuda(non_blocking=True)
 
             # 绘制可视化图像
-            forward(model, images)
+            # forward(model, images)
             
-            exit(0)
+            # exit(0)
 
             outputs = model(images)
             outputs = torch.nn.functional.softmax(outputs, 1)
@@ -236,7 +245,7 @@ def main(config_path):
     print(conf_matrix)
 
     attack_types = [EMO_DICT[i] for i in range(len(EMO_DICT))]
-    plot_confusion_matrix(conf_matrix, classes=attack_types, path='./images/', normalize=True, title='Normalized confusion matrix')
+    plot_confusion_matrix(conf_matrix, classes=attack_types, path='./images/', normalize=True, title='Resnet18 with attention gate')
 
 
 def get_model(configs):
